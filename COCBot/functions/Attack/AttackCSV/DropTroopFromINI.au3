@@ -100,8 +100,12 @@ Func DropTroopFromINI($vectors, $indexStart, $indexEnd, $qtaMin, $qtaMax, $troop
 		EndIf
 
 	Else
+
+		Local $SuspendMode = SuspendAndroid()
+
 		SelectDropTroop($troopPosition) ; select the troop...
 		;drop
+		KeepClicks()
 		For $i = $indexStart To $indexEnd
 			For $j = 1 To $numbersOfVectors
 				If $i <= UBound(Execute("$" & Eval("vector" & $j))) Then
@@ -123,11 +127,23 @@ Func DropTroopFromINI($vectors, $indexStart, $indexEnd, $qtaMin, $qtaMax, $troop
 							Else
 								Click($pixel[0], $pixel[1], $qty2, $delayPoint, "#0666")
 							EndIf
-						Case $eKing To $eWarden ; drop heroes
+						Case $eKing
 							If $debug = True Then
-								Setlog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ", " & $King & ", " & $Queen & ", " & $Warden & ") ")
+								Setlog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ", " & $King & ", -1, -1) ")
 							Else
-								dropHeroes($pixel[0], $pixel[1], $King, $Queen, $Warden)
+								dropHeroes($pixel[0], $pixel[1], $King, -1, -1)
+							EndIf
+						Case $eQueen
+							If $debug = True Then
+								Setlog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ",-1," & $Queen & ", -1) ")
+							Else
+								dropHeroes($pixel[0], $pixel[1],  -1, $Queen , -1)
+							EndIf
+						Case $eWarden
+							If $debug = True Then
+								Setlog("dropHeroes(" & $pixel[0] & ", " & $pixel[1] & ", -1, -1," & $Warden & ") ")
+							Else
+								dropHeroes($pixel[0], $pixel[1], -1, -1,$Warden)
 							EndIf
 						Case $eCastle
 							If $debug = True Then
@@ -157,10 +173,18 @@ Func DropTroopFromINI($vectors, $indexStart, $indexEnd, $qtaMin, $qtaMax, $troop
 				EndIf
 				debugAttackCSV(">> delay change drop point: " & $delayDrop)
 				If $delayDrop <> 0 Then
-					If _Sleep($delayDrop) Then Return
+				    SuspendAndroid($SuspendMode)
+					ReleaseClicks()
+					If _Sleep($delayDrop) Then
+					   Return
+				    EndIf
+					KeepClicks()
 				EndIf
 			EndIf
 		Next
+
+	    ReleaseClicks()
+	    SuspendAndroid($SuspendMode)
 
 		;sleep time after deploy all troops
 		If $sleepafterMin <> $sleepAfterMax Then
